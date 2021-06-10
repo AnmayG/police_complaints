@@ -12,7 +12,19 @@ library(tidyverse)
 ```
 
 ```{r data, include = FALSE}
-raw_data <- read_csv("https://raw.githubusercontent.com/Financial-Times/police-misconduct-complaints-analysis/main/output/philly_clean.csv") %>%
+raw_data <- read_csv("https://raw.githubusercontent.com/Financial-Times/police-misconduct-complaints-analysis/main/output/philly_clean.csv", 
+                     col_types = cols(complaint_id = col_character(),
+                                      date_received = col_date(format = ""),
+                                      district_occurrence = col_character(),
+                                      general_cap_classification = col_character(),
+                                      summary = col_character(),
+                                      officer_id = col_double(),
+                                      po_race = col_character(),
+                                      po_sex = col_character(),
+                                      po_assigned_unit = col_character(),
+                                      allegations_investigated = col_character(),
+                                      investigative_findings = col_character(),
+                                      disciplinary_findings = col_character())) %>%
   select(officer_id, po_sex, po_race)
 ```
 
@@ -22,17 +34,23 @@ plot_data <- raw_data %>%
   group_by(officer_id) %>%
   summarize(total = n()) %>%
   arrange(desc(total)) %>%
-  slice(1:10)
+  mutate(officer_id = as.character(officer_id)) %>%
+  mutate(decile = ntile(total, 10)) %>%
+  group_by(decile) %>%
+  summarize(num_complaints = sum(total)) %>%
+  mutate(prct_complaints = num_complaints/sum(num_complaints))
 ```
 
 ```{r plot_data}
-plot_data %>% mutate(officer_id = as.character(officer_id)) %>%
-  ggplot(aes(x = officer_id, y = total)) +
-    geom_col() + 
-    coord_flip() +
-    labs(title = "Philadelphia Officer Complaints",
-         subtitle = "Officers with many complaints hold a large percentage of total complaints",
-         x = "ID of Officer", 
-         y = "Number of Complaints")
+plot_data %>% 
+  ggplot(aes(x = decile, y = prct_complaints)) +
+    geom_col(fill = "skyblue") + 
+    scale_x_continuous(breaks = 1:10) +
+    scale_y_continuous(labels = scales::percent_format()) + 
+    labs(title = "Distribution of Civilian Misconduct Complaints, by Decile",
+         subtitle = "In Philadelphia, a small group of officers generate a disproportionate share \nof misconduct complaints",
+         x = "Decile", 
+         y = "Percent of Complaints",
+         caption = "Source: Open Data Philly and Sam Learner")
 ```
 
