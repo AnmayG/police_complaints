@@ -1,0 +1,38 @@
+---
+title: "Complaints"
+author: "Anmay Gupta"
+date: "6/9/2021"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+```
+
+```{r data, include = FALSE}
+raw_data <- read_csv("https://raw.githubusercontent.com/Financial-Times/police-misconduct-complaints-analysis/main/output/philly_clean.csv") %>%
+  select(officer_id, po_sex, po_race)
+```
+
+
+```{r, clean_data, include = FALSE}
+plot_data <- raw_data %>%
+  group_by(officer_id) %>%
+  summarize(total = n()) %>%
+  arrange(desc(total)) %>%
+  slice(1:10)
+```
+
+```{r plot_data}
+plot_data %>% mutate(officer_id = as.character(officer_id)) %>%
+  ggplot(aes(x = officer_id, y = total)) +
+    geom_col() + 
+    coord_flip() +
+    labs(title = "Philadelphia Officer Complaints",
+         subtitle = "Officers with many complaints hold a large percentage of total complaints",
+         x = "ID of Officer", 
+         y = "Number of Complaints")
+```
+
