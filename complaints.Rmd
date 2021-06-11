@@ -43,10 +43,14 @@ plot_data <- raw_data %>%
 
 ```{r plot_data}
 plot_data %>% 
-  ggplot(aes(x = decile, y = prct_complaints)) +
-    geom_col(fill = "skyblue") + 
+  ggplot(aes(x = decile, y = prct_complaints, 
+             fill = if_else(decile == 10, TRUE, FALSE))) +
+    geom_col() + 
     scale_x_continuous(breaks = 1:10) +
-    scale_y_continuous(labels = scales::percent_format()) + 
+    scale_y_continuous(labels = scales::percent_format()) +
+    scale_fill_manual(values = c("darkblue", "skyblue")) +
+    theme_classic() +
+    theme(legend.position = "none") +
     labs(title = "Distribution of Civilian Misconduct Complaints, by Decile",
          subtitle = "In Philadelphia, a small group of officers generate a disproportionate share \nof misconduct complaints",
          x = "Decile", 
